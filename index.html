@@ -1,176 +1,290 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StudySphere Cloud - LMS & Analytics</title>
-    <!-- Tailwind CSS CDN -->
+    <title>StudySphere - Dynamic Scalable Platform with Admin Panel</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        brand: { 50: '#eef2ff', 500: '#6366f1', 600: '#4f46e5', 700: '#4338ca' }
-                    }
-                }
-            }
-        }
-    </script>
-    <!-- Alpine.js for lightweight reactivity -->
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Poppins', sans-serif; }
+    </style>
 </head>
-<body class="h-full bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-200" 
-      x-data="app()" x-init="init()">
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
 
-    <!-- App Container -->
-    <div class="min-h-full flex flex-col">
-        
-        <!-- Navigation Bar -->
-        <header class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-                <div class="flex items-center space-x-3">
-                    <span class="text-2xl font-black text-brand-600 dark:text-brand-500">StudySphere</span>
-                    <span class="text-xs px-2 py-1 bg-brand-50 dark:bg-gray-700 text-brand-600 dark:text-brand-400 rounded-full font-semibold">Cloud LMS</span>
-                </div>
-
-                <div class="flex items-center space-x-4">
-                    <!-- Dark Mode Toggle -->
-                    <button @click="toggleDarkMode()" class="p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700">
-                        <svg x-show="!darkMode" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
-                        <svg x-show="darkMode" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-                    </button>
-
-                    <!-- Guest Profile Indicator -->
-                    <div class="flex items-center space-x-3">
-                        <span class="text-sm font-medium text-gray-600 dark:text-gray-300">Guest User</span>
-                    </div>
-                </div>
+    <!-- Navbar -->
+    <header class="bg-indigo-600 text-white shadow-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <span class="text-2xl font-bold bg-white text-indigo-600 px-3 py-1.5 rounded-xl shadow flex items-center gap-2">
+                🚀 <span>StudySphere</span>
+            </span>
+            <nav class="flex flex-wrap justify-center space-x-4 sm:space-x-6 text-sm font-medium">
+                <a href="#classes" class="hover:text-indigo-200 transition">Classes 1–12</a>
+                <a href="#materials" class="hover:text-indigo-200 transition">Syllabus Library</a>
+                <a href="#questionbank" class="hover:text-indigo-200 transition">Question Bank</a>
+            </nav>
+            <div class="flex items-center gap-3">
+                <select id="globalAcademicYear" onchange="updateAcademicYear(this.value)" class="bg-indigo-700 text-white text-xs font-semibold px-3 py-2 rounded-xl border border-indigo-400 focus:outline-none">
+                    <option value="2026-27">Academic Year: 2026–27</option>
+                    <option value="2025-26">Academic Year: 2025–26 (Archived)</option>
+                </select>
+                <button onclick="toggleModal('adminModal')" class="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-xl text-xs font-semibold transition shadow-sm">⚙️ Admin Panel</button>
             </div>
-        </header>
+        </div>
+    </header>
 
-        <!-- Main Content Area -->
-        <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div class="space-y-6">
-                <!-- Navigation Tabs -->
-                <div class="flex space-x-2 border-b border-gray-200 dark:border-gray-700 pb-3">
-                    <button @click="currentTab = 'practice'" :class="currentTab === 'practice' ? 'bg-brand-600 text-white' : 'bg-gray-100 dark:bg-gray-800'" class="px-4 py-2 rounded-lg font-medium text-sm transition">Practice Hub</button>
-                    <button @click="currentTab = 'leaderboard'" :class="currentTab === 'leaderboard' ? 'bg-brand-600 text-white' : 'bg-gray-100 dark:bg-gray-800'" class="px-4 py-2 rounded-lg font-medium text-sm transition">Leaderboard</button>
-                    <button @click="currentTab = 'admin'" :class="currentTab === 'admin' ? 'bg-brand-600 text-white' : 'bg-gray-100 dark:bg-gray-800'" class="px-4 py-2 rounded-lg font-medium text-sm transition">CMS & Telemetry</button>
-                </div>
-
-                <!-- Practice Tab -->
-                <div x-show="currentTab === 'practice'" class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-                    <h3 class="text-xl font-bold mb-4">Interactive Practice Question</h3>
-                    <p class="text-gray-600 dark:text-gray-400 mb-4" x-text="currentQuestion.text"></p>
-                    <div class="space-y-2 mb-6">
-                        <template x-for="(option, index) in currentQuestion.options" :key="index">
-                            <label class="flex items-center space-x-3 p-3 border rounded-lg cursor-pointer dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
-                                <input type="radio" name="quizOption" :value="index" x-model="selectedOption">
-                                <span x-text="option"></span>
-                            </label>
-                        </template>
-                    </div>
-                    <button @click="submitAnswer()" class="px-4 py-2 bg-brand-600 text-white rounded-lg font-medium hover:bg-brand-700">Submit Answer</button>
-                </div>
-
-                <!-- Leaderboard Tab -->
-                <div x-show="currentTab === 'leaderboard'" class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-                    <h3 class="text-xl font-bold mb-4">Live Student Leaderboard</h3>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse">
-                           <thead>
-                               <tr class="border-b dark:border-gray-700">
-                                   <th class="py-2 px-4">Rank</th>
-                                   <th class="py-2 px-4">Student</th>
-                                   <th class="py-2 px-4">Score</th>
-                               </tr>
-                           </thead>
-                           <tbody>
-                               <template x-for="(row, index) in leaderboard" :key="index">
-                                   <tr class="border-b dark:border-gray-700/50">
-                                       <td class="py-2 px-4 font-bold" x-text="index + 1"></td>
-                                       <td class="py-2 px-4" x-text="row.email"></td>
-                                       <td class="py-2 px-4" x-text="row.score"></td>
-                                   </tr>
-                               </template>
-                           </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- Admin CMS & Telemetry Tab -->
-                <div x-show="currentTab === 'admin'" class="space-y-6">
-                    <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-                        <div class="flex justify-between items-center mb-4">
-                            <h3 class="text-xl font-bold">Telemetry & Analytics Dashboard</h3>
-                            <button @click="exportCSV()" class="px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 text-sm">Export CSV</button>
-                        </div>
-                        <p class="text-sm text-gray-500">Monitor question metrics, student performance data, and telemetry logs seamlessly.</p>
-                    </div>
-                </div>
+    <!-- Live Status Banner -->
+    <div class="bg-amber-50 border-y border-amber-200 py-3 px-4">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between text-sm">
+            <div class="flex items-center space-x-2 text-amber-900 font-medium mb-2 sm:mb-0">
+                <span class="animate-pulse bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">Engine Active</span>
+                <span>📚 Click "Admin Panel" above to add chapters or update study materials on the fly!</span>
             </div>
-        </main>
+        </div>
     </div>
 
-    <!-- Application Script -->
+    <!-- Hero Section -->
+    <section class="bg-gradient-to-br from-indigo-600 via-indigo-700 to-sky-500 text-white py-16 px-4 text-center">
+        <div class="max-w-3xl mx-auto">
+            <span class="bg-white/10 text-indigo-100 text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-widest border border-white/20">Scalable Architecture</span>
+            <h1 class="text-4xl md:text-5xl font-extrabold mt-4 mb-4 tracking-tight">Centralized Syllabus & Content Hub</h1>
+            <p class="text-base md:text-lg text-indigo-100 mb-8">Manage boards, classes, chapters, and PDFs dynamically from a unified management interface.</p>
+        </div>
+    </section>
+
+    <!-- Classes Section (1 to 12) -->
+    <section id="classes" class="max-w-7xl mx-auto px-4 py-8 w-full">
+        <div class="text-center mb-8">
+            <h2 class="text-3xl font-bold text-slate-900">Select Grade Level (Classes 1 to 12)</h2>
+            <p class="text-slate-500 mt-2">Interactive selector mapped directly to your active database structures</p>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-4" id="classGridContainer"></div>
+    </section>
+
+    <!-- Dynamic Materials Section -->
+    <section id="materials" class="max-w-7xl mx-auto px-4 py-12 w-full">
+        <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4">
+            <div>
+                <h3 id="currentSelectionTitle" class="text-2xl font-bold text-slate-900">Study Materials & Syllabus View</h3>
+                <p class="text-slate-500 text-sm mt-1">Managed via centralized academic year version rules</p>
+            </div>
+            <span id="activeYearBadge" class="bg-indigo-100 text-indigo-800 text-xs font-semibold px-3 py-2 rounded-xl">Year: 2026–27</span>
+        </div>
+        <div id="dynamicContentGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+    </section>
+
+    <!-- Question Bank Section -->
+    <section id="questionbank" class="max-w-7xl mx-auto px-4 py-12 w-full border-t border-slate-200">
+        <div class="mb-8">
+            <h3 class="text-2xl font-bold text-slate-900">Question Bank & Detailed Solutions</h3>
+            <p class="text-slate-500 text-sm mt-1">Synced with current active chapters</p>
+        </div>
+        <div id="questionBankContainer" class="space-y-4"></div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-slate-400 py-12 mt-20 border-t border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <span class="text-xl font-bold text-white flex items-center justify-center gap-2 mb-3">🚀 StudySphere Platform</span>
+            <p class="text-sm max-w-md mx-auto">&copy; 2026 StudySphere. Scalable Educational Engine.</p>
+        </div>
+    </footer>
+
+    <!-- Admin Modal / Content Management Form -->
+    <div id="adminModal" class="fixed inset-0 bg-black/60 hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl relative">
+            <div class="flex justify-between items-center pb-4 border-b">
+                <h3 class="text-lg font-bold text-slate-900">⚙️ Admin Content Manager</h3>
+                <button onclick="toggleModal('adminModal')" class="text-slate-400 hover:text-slate-600 font-bold text-xl">&times;</button>
+            </div>
+            <form id="adminForm" onsubmit="handleAdminSubmit(event)" class="space-y-4 pt-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Education Board</label>
+                    <select id="adminBoard" class="w-full bg-slate-100 p-2.5 rounded-xl text-sm border border-slate-300">
+                        <option value="CBSE">CBSE</option>
+                        <option value="ICSE">ICSE</option>
+                        <option value="StateBoard">State Board</option>
+                    </select>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Academic Year</label>
+                        <select id="adminYear" class="w-full bg-slate-100 p-2.5 rounded-xl text-sm border border-slate-300">
+                            <option value="2026-27">2026–27</option>
+                            <option value="2025-26">2025–26</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Class Level</label>
+                        <select id="adminClass" class="w-full bg-slate-100 p-2.5 rounded-xl text-sm border border-slate-300">
+                            <!-- Populated dynamically -->
+                        </select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Subject Name</label>
+                        <input type="text" id="adminSubject" placeholder="e.g. Mathematics" required class="w-full bg-slate-100 p-2.5 rounded-xl text-sm border border-slate-300">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Chapter Code</label>
+                        <input type="text" id="adminCode" placeholder="e.g. Ch 3" required class="w-full bg-slate-100 p-2.5 rounded-xl text-sm border border-slate-300">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Chapter Title</label>
+                    <input type="text" id="adminTitle" placeholder="e.g. Matrices & Determinants" required class="w-full bg-slate-100 p-2.5 rounded-xl text-sm border border-slate-300">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Short Description / Notes</label>
+                    <textarea id="adminDesc" placeholder="Key concepts, formula summaries..." rows="2" required class="w-full bg-slate-100 p-2.5 rounded-xl text-sm border border-slate-300"></textarea>
+                </div>
+                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl font-semibold text-sm transition shadow-sm">Save & Publish to Platform</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Script Engine -->
     <script>
-        function app() {
-            return {
-                darkMode: false,
-                currentTab: 'practice',
-                currentQuestion: {
-                    text: "What is the primary advantage of utilizing connection pooling in cloud databases?",
-                    options: [
-                        "It completely eliminates the need for indexing.",
-                        "It reduces the overhead of establishing a new database connection for every request.",
-                        "It automatically scales serverless hardware dynamically.",
-                        "It guarantees zero latency across all geographic regions."
-                    ],
-                    correctIndex: 1
-                },
-                selectedOption: null,
-                leaderboard: [
-                    { email: 'student1@studysphere.cloud', score: 1450 },
-                    { email: 'learner_x@studysphere.cloud', score: 1320 },
-                    { email: 'cloud_ninja@studysphere.cloud', score: 1200 }
-                ],
-                init() {
-                    // Check system dark mode preference
-                    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-                        this.darkMode = true;
-                        document.documentElement.classList.add('dark');
-                    }
-                },
-                toggleDarkMode() {
-                    this.darkMode = !this.darkMode;
-                    document.documentElement.classList.toggle('dark', this.darkMode);
-                },
-                submitAnswer() {
-                    if (this.selectedOption === null) {
-                        alert('Please select an option first.');
-                        return;
-                    }
-                    if (parseInt(this.selectedOption) === this.currentQuestion.correctIndex) {
-                        alert('Correct answer! Great job.');
-                    } else {
-                        alert('Incorrect. Review the concept and try again!');
-                    }
-                },
-                exportCSV() {
-                    const csvContent = "data:text/csv;charset=utf-8,Student,Score\n" 
-                        + this.leaderboard.map(e => `${e.email},${e.score}`).join("\n");
-                    const encodedUri = encodeURI(csvContent);
-                    const link = document.createElement("a");
-                    link.setAttribute("href", encodedUri);
-                    link.setAttribute("download", "studysphere_telemetry.csv");
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
+        // Local Database initialized or loaded from localStorage
+        let platformDatabase = JSON.parse(localStorage.getItem('studySphereDB')) || {
+            "2026-27": {
+                "CBSE": {
+                    "Class 10": [
+                        { code: "Ch 1", subject: "Science", title: "Chemical Reactions & Equations", desc: "Balanced equations, reaction types, and oxidation notes.", status: "Active" },
+                        { code: "Ch 5", subject: "Science", title: "Light – Reflection & Refraction", desc: "Ray diagrams and optical formulations.", status: "Active" }
+                    ]
+                }
+            },
+            "2025-26": {
+                "CBSE": {
+                    "Class 10": [
+                        { code: "Ch 1", subject: "Science", title: "Chemical Reactions (Archived)", desc: "Previous academic year archival record.", status: "Archived" }
+                    ]
                 }
             }
+        };
+
+        let currentYear = "2026-27";
+        let currentBoard = "CBSE";
+        let currentClass = "Class 10";
+
+        // Populate Class dropdown in Admin Form
+        function initAdminOptions() {
+            const select = document.getElementById('adminClass');
+            select.innerHTML = '';
+            for (let i = 1; i <= 12; i++) {
+                select.innerHTML += `<option value="Class ${i}">Class ${i}</option>`;
+            }
         }
+
+        // Render Classes 1 to 12
+        function renderClasses() {
+            const container = document.getElementById('classGridContainer');
+            container.innerHTML = '';
+            for (let i = 1; i <= 12; i++) {
+                const className = `Class ${i}`;
+                const isSelected = className === currentClass;
+                container.innerHTML += `
+                    <button onclick="selectClass('${className}')" class="bg-white border ${isSelected ? 'border-indigo-600 ring-2 ring-indigo-600' : 'border-slate-200'} p-5 rounded-2xl text-center shadow-sm hover:shadow-md hover:border-indigo-500 transition group">
+                        <div class="text-2xl mb-1">${i <= 5 ? '🌱' : i <= 10 ? '🎯' : '🎓'}</div>
+                        <h3 class="font-bold ${isSelected ? 'text-indigo-600' : 'text-slate-800'} text-sm">Class ${i}</h3>
+                    </button>
+                `;
+            }
+        }
+
+        function selectClass(className) {
+            currentClass = className;
+            renderClasses();
+            document.getElementById('currentSelectionTitle').innerText = `Study Material & Syllabus for ${className} (${currentBoard})`;
+            renderMaterials();
+        }
+
+        function updateAcademicYear(year) {
+            currentYear = year;
+            document.getElementById('activeYearBadge').innerText = `Year: ${year}`;
+            renderMaterials();
+        }
+
+        // Handle Admin Form Submission
+        function handleAdminSubmit(event) {
+            event.preventDefault();
+            const year = document.getElementById('adminYear').value;
+            const board = document.getElementById('adminBoard').value;
+            const cls = document.getElementById('adminClass').value;
+            
+            const newChapter = {
+                code: document.getElementById('adminCode').value,
+                subject: document.getElementById('adminSubject').value,
+                title: document.getElementById('adminTitle').value,
+                desc: document.getElementById('adminDesc').value,
+                status: "Active"
+            };
+
+            // Ensure nested database path exists
+            if (!platformDatabase[year]) platformDatabase[year] = {};
+            if (!platformDatabase[year][board]) platformDatabase[year][board] = {};
+            if (!platformDatabase[year][board][cls]) platformDatabase[year][board][cls] = [];
+
+            platformDatabase[year][board][cls].push(newChapter);
+
+            // Save to localStorage for permanent browser persistence
+            localStorage.setItem('studySphereDB', JSON.stringify(platformDatabase));
+
+            alert('Successfully published new chapter to platform database!');
+            toggleModal('adminModal');
+            document.getElementById('adminForm').reset();
+            
+            // Switch view to match what was added
+            currentYear = year;
+            currentBoard = board;
+            currentClass = cls;
+            renderMaterials();
+        }
+
+        function renderMaterials() {
+            const grid = document.getElementById('dynamicContentGrid');
+            grid.innerHTML = '';
+            
+            const yearData = platformDatabase[currentYear] || {};
+            const boardData = yearData[currentBoard] || {};
+            const materials = boardData[currentClass] || [];
+
+            if (materials.length === 0) {
+                grid.innerHTML = `<div class="col-span-full bg-white p-8 rounded-2xl text-center border border-slate-200 text-slate-500">No study materials published yet for ${currentClass} (${currentBoard}, Year ${currentYear}). Click **Admin Panel** above to add one!</div>`;
+                return;
+            }
+
+            materials.forEach(item => {
+                const isArchived = item.status === "Archived";
+                grid.innerHTML += `
+                    <div class="bg-white rounded-2xl p-6 border ${isArchived ? 'border-amber-300 bg-amber-50/30' : 'border-slate-200'} shadow-sm hover:shadow-md transition flex flex-col justify-between">
+                        <div>
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="bg-indigo-100 text-indigo-800 text-xs font-semibold px-3 py-1 rounded-full">${item.subject} • ${item.code}</span>
+                                ${isArchived ? '<span class="bg-amber-200 text-amber-900 text-xs font-bold px-2 py-0.5 rounded">Archived</span>' : '<span class="bg-emerald-100 text-emerald-800 text-xs font-bold px-2 py-0.5 rounded">Active Syllabus</span>'}
+                            </div>
+                            <h5 class="text-lg font-bold mt-2 text-slate-900">${item.title}</h5>
+                            <p class="text-slate-500 text-sm mt-1">${item.desc}</p>
+                        </div>
+                        <div class="mt-6 flex space-x-2">
+                            <button onclick="alert('Opening official text or PDF viewer for: ${item.title}')" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-xl text-xs font-medium transition text-center shadow-sm">📥 View Material</button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function toggleModal(id) {
+            document.getElementById(id).classList.toggle('hidden');
+        }
+
+        window.onload = function() {
+            initAdminOptions();
+            renderClasses();
+            renderMaterials();
+        };
     </script>
 </body>
 </html>
