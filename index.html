@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudySphere Cloud - LMS & Analytics</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: { 50: '#eef2ff', 500: '#6366f1', 600: '#4f46e5', 700: '#4338ca' }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Alpine.js for lightweight reactivity -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body class="h-full bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-200" 
+      x-data="app()" x-init="init()">
+
+    <!-- App Container -->
+    <div class="min-h-full flex flex-col">
+        
+        <!-- Navigation Bar -->
+        <header class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <span class="text-2xl font-black text-brand-600 dark:text-brand-500">StudySphere</span>
+                    <span class="text-xs px-2 py-1 bg-brand-50 dark:bg-gray-700 text-brand-600 dark:text-brand-400 rounded-full font-semibold">Cloud LMS</span>
+                </div>
+
+                <div class="flex items-center space-x-4">
+                    <!-- Dark Mode Toggle -->
+                    <button @click="toggleDarkMode()" class="p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700">
+                        <svg x-show="!darkMode" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+                        <svg x-show="darkMode" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                    </button>
+
+                    <!-- Guest Profile Indicator -->
+                    <div class="flex items-center space-x-3">
+                        <span class="text-sm font-medium text-gray-600 dark:text-gray-300">Guest User</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="space-y-6">
+                <!-- Navigation Tabs -->
+                <div class="flex space-x-2 border-b border-gray-200 dark:border-gray-700 pb-3">
+                    <button @click="currentTab = 'practice'" :class="currentTab === 'practice' ? 'bg-brand-600 text-white' : 'bg-gray-100 dark:bg-gray-800'" class="px-4 py-2 rounded-lg font-medium text-sm transition">Practice Hub</button>
+                    <button @click="currentTab = 'leaderboard'" :class="currentTab === 'leaderboard' ? 'bg-brand-600 text-white' : 'bg-gray-100 dark:bg-gray-800'" class="px-4 py-2 rounded-lg font-medium text-sm transition">Leaderboard</button>
+                    <button @click="currentTab = 'admin'" :class="currentTab === 'admin' ? 'bg-brand-600 text-white' : 'bg-gray-100 dark:bg-gray-800'" class="px-4 py-2 rounded-lg font-medium text-sm transition">CMS & Telemetry</button>
+                </div>
+
+                <!-- Practice Tab -->
+                <div x-show="currentTab === 'practice'" class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+                    <h3 class="text-xl font-bold mb-4">Interactive Practice Question</h3>
+                    <p class="text-gray-600 dark:text-gray-400 mb-4" x-text="currentQuestion.text"></p>
+                    <div class="space-y-2 mb-6">
+                        <template x-for="(option, index) in currentQuestion.options" :key="index">
+                            <label class="flex items-center space-x-3 p-3 border rounded-lg cursor-pointer dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
+                                <input type="radio" name="quizOption" :value="index" x-model="selectedOption">
+                                <span x-text="option"></span>
+                            </label>
+                        </template>
+                    </div>
+                    <button @click="submitAnswer()" class="px-4 py-2 bg-brand-600 text-white rounded-lg font-medium hover:bg-brand-700">Submit Answer</button>
+                </div>
+
+                <!-- Leaderboard Tab -->
+                <div x-show="currentTab === 'leaderboard'" class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+                    <h3 class="text-xl font-bold mb-4">Live Student Leaderboard</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                           <thead>
+                               <tr class="border-b dark:border-gray-700">
+                                   <th class="py-2 px-4">Rank</th>
+                                   <th class="py-2 px-4">Student</th>
+                                   <th class="py-2 px-4">Score</th>
+                               </tr>
+                           </thead>
+                           <tbody>
+                               <template x-for="(row, index) in leaderboard" :key="index">
+                                   <tr class="border-b dark:border-gray-700/50">
+                                       <td class="py-2 px-4 font-bold" x-text="index + 1"></td>
+                                       <td class="py-2 px-4" x-text="row.email"></td>
+                                       <td class="py-2 px-4" x-text="row.score"></td>
+                                   </tr>
+                               </template>
+                           </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Admin CMS & Telemetry Tab -->
+                <div x-show="currentTab === 'admin'" class="space-y-6">
+                    <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-xl font-bold">Telemetry & Analytics Dashboard</h3>
+                            <button @click="exportCSV()" class="px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 text-sm">Export CSV</button>
+                        </div>
+                        <p class="text-sm text-gray-500">Monitor question metrics, student performance data, and telemetry logs seamlessly.</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Application Script -->
+    <script>
+        function app() {
+            return {
+                darkMode: false,
+                currentTab: 'practice',
+                currentQuestion: {
+                    text: "What is the primary advantage of utilizing connection pooling in cloud databases?",
+                    options: [
+                        "It completely eliminates the need for indexing.",
+                        "It reduces the overhead of establishing a new database connection for every request.",
+                        "It automatically scales serverless hardware dynamically.",
+                        "It guarantees zero latency across all geographic regions."
+                    ],
+                    correctIndex: 1
+                },
+                selectedOption: null,
+                leaderboard: [
+                    { email: 'student1@studysphere.cloud', score: 1450 },
+                    { email: 'learner_x@studysphere.cloud', score: 1320 },
+                    { email: 'cloud_ninja@studysphere.cloud', score: 1200 }
+                ],
+                init() {
+                    // Check system dark mode preference
+                    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                        this.darkMode = true;
+                        document.documentElement.classList.add('dark');
+                    }
+                },
+                toggleDarkMode() {
+                    this.darkMode = !this.darkMode;
+                    document.documentElement.classList.toggle('dark', this.darkMode);
+                },
+                submitAnswer() {
+                    if (this.selectedOption === null) {
+                        alert('Please select an option first.');
+                        return;
+                    }
+                    if (parseInt(this.selectedOption) === this.currentQuestion.correctIndex) {
+                        alert('Correct answer! Great job.');
+                    } else {
+                        alert('Incorrect. Review the concept and try again!');
+                    }
+                },
+                exportCSV() {
+                    const csvContent = "data:text/csv;charset=utf-8,Student,Score\n" 
+                        + this.leaderboard.map(e => `${e.email},${e.score}`).join("\n");
+                    const encodedUri = encodeURI(csvContent);
+                    const link = document.createElement("a");
+                    link.setAttribute("href", encodedUri);
+                    link.setAttribute("download", "studysphere_telemetry.csv");
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                }
+            }
+        }
+    </script>
+</body>
+</html>
